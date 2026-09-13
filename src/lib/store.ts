@@ -73,10 +73,9 @@ export type BookingStep = 1 | 2 | 3;
 export type ResultScreen = "success" | "pending" | "payment_failed" | "slot_taken" | "error" | null;
 
 interface BookingStore {
-  // Theme
+  // Theme is permanently dark across the product.
   theme: ThemeMode;
   locale: Locale;
-  toggleTheme: () => void;
   setLocale: (l: Locale) => void;
 
   // Step
@@ -134,10 +133,8 @@ const initialFormData: BookingFormData = {
 };
 
 export const useBookingStore = create<BookingStore>((set) => ({
-  theme: "light",
+  theme: "dark",
   locale: "pl",
-  toggleTheme: () =>
-    set((s) => ({ theme: s.theme === "light" ? "dark" : "light" })),
   setLocale: (locale) => set({ locale }),
 
   step: 1,

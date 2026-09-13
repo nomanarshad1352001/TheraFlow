@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { Check, X } from "lucide-react";
 import { useBookingStore } from "@/lib/store";
 import { t } from "@/lib/i18n";
-import { cn, formatPrice, formatTime, formatDate } from "@/lib/utils";
+import { cn, formatDate, formatPrice, formatTime } from "@/lib/utils";
 import { getDemoBookings, getReservedSlotIds, reserveSlot, saveDemoBookings } from "@/lib/demo-storage";
 import type { DemoBooking } from "@/lib/demo-data";
-import { useState } from "react";
 
 export function ConfirmationModal() {
   const {
@@ -15,14 +16,11 @@ export function ConfirmationModal() {
     selectedService,
     formData,
     locale,
-    theme,
-    clinic,
     visitMode,
     setResultScreen,
     setBookingId,
     setStep,
   } = useBookingStore();
-  const isDark = theme === "dark";
   const [submitting, setSubmitting] = useState(false);
 
   if (!showConfirmation || !selectedSlot || !selectedService) return null;
@@ -77,159 +75,60 @@ export function ConfirmationModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={() => !submitting && setShowConfirmation(false)}
-      />
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => !submitting && setShowConfirmation(false)} />
 
-      {/* Modal */}
-      <div className={cn(
-        "relative w-full max-w-lg rounded-2xl p-6 shadow-2xl animate-scale-in",
-        isDark ? "bg-brand-900 border border-brand-700" : "bg-white"
-      )}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className={cn(
-            "text-xl font-bold",
-            isDark ? "text-white" : "text-slate-800"
-          )}>
-            {t(locale, "confirmBooking")}
-          </h2>
+      <div className="relative w-full max-w-lg rounded-3xl border border-white/12 bg-[#121215] p-6 shadow-2xl animate-scale-in sm:p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="luxury-title text-4xl">{t(locale, "confirmBooking")}</h2>
           <button
             onClick={() => !submitting && setShowConfirmation(false)}
-            className={cn(
-              "rounded-lg p-1.5 transition-colors",
-              isDark ? "text-brand-400 hover:bg-brand-800" : "text-slate-400 hover:bg-slate-100"
-            )}
+            className="grid h-9 w-9 place-items-center rounded-xl border border-white/12 t-mid hover:text-[#f7f5f0]"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            <X size={16} />
           </button>
         </div>
 
-        {/* Summary card */}
-        <div className={cn(
-          "rounded-xl border-2 p-4 mb-4 space-y-3",
-          isDark ? "border-brand-700 bg-brand-950/50" : "border-slate-200 bg-slate-50"
-        )}>
-          <h3 className={cn(
-            "text-sm font-semibold",
-            isDark ? "text-brand-300" : "text-slate-500"
-          )}>
-            {t(locale, "visitSummary")}
-          </h3>
-
+        <div className="mb-4 space-y-3 rounded-2xl border border-white/10 bg-[#0e0e11] p-5">
+          <h3 className="text-[10px] font-extrabold uppercase tracking-[.14em] t-gold">{t(locale, "visitSummary")}</h3>
           <div className="space-y-2.5">
-            <SummaryRow
-              icon="💼"
-              label={t(locale, "service")}
-              value={serviceName}
-              isDark={isDark}
-            />
-            <SummaryRow
-              icon="👤"
-              label={t(locale, "specialist")}
-              value={`${selectedSlot.specialistTitle || ""} ${selectedSlot.specialistFirstName} ${selectedSlot.specialistLastName}`}
-              isDark={isDark}
-            />
-            <SummaryRow
-              icon="📅"
-              label={t(locale, "date")}
-              value={formatDate(selectedSlot.startTime, locale)}
-              isDark={isDark}
-            />
-            <SummaryRow
-              icon="🕐"
-              label={t(locale, "time")}
-              value={`${formatTime(selectedSlot.startTime)} – ${formatTime(selectedSlot.endTime)}`}
-              isDark={isDark}
-            />
-            <SummaryRow
-              icon={visitMode === "online" ? "💻" : "🏥"}
-              label={t(locale, "mode")}
-              value={t(locale, visitMode === "online" ? "online" : "inOffice")}
-              isDark={isDark}
-            />
+            <SummaryRow icon="💼" label={t(locale, "service")} value={serviceName} />
+            <SummaryRow icon="👤" label={t(locale, "specialist")} value={`${selectedSlot.specialistTitle || ""} ${selectedSlot.specialistFirstName} ${selectedSlot.specialistLastName}`} />
+            <SummaryRow icon="📅" label={t(locale, "date")} value={formatDate(selectedSlot.startTime, locale)} />
+            <SummaryRow icon="🕐" label={t(locale, "time")} value={`${formatTime(selectedSlot.startTime)} – ${formatTime(selectedSlot.endTime)}`} />
+            <SummaryRow icon={visitMode === "online" ? "💻" : "🏥"} label={t(locale, "mode")} value={t(locale, visitMode === "online" ? "online" : "inOffice")} />
           </div>
 
-          <div className={cn(
-            "mt-3 border-t pt-3",
-            isDark ? "border-brand-700" : "border-slate-200"
-          )}>
-            <SummaryRow
-              icon="🧑"
-              label={t(locale, "patient")}
-              value={`${formData.patientFirstName} ${formData.patientLastName}`}
-              isDark={isDark}
-            />
+          <div className="mt-3 space-y-2.5 border-t border-white/10 pt-3">
+            <SummaryRow icon="🧑" label={t(locale, "patient")} value={`${formData.patientFirstName} ${formData.patientLastName}`} />
             {formData.bookingFor === "someone_else" && (
-              <div className="mt-2">
-                <SummaryRow
-                  icon="💳"
-                  label={t(locale, "payer")}
-                  value={`${formData.payerFirstName} ${formData.payerLastName}`}
-                  isDark={isDark}
-                />
-              </div>
+              <SummaryRow icon="💳" label={t(locale, "payer")} value={`${formData.payerFirstName} ${formData.payerLastName}`} />
             )}
           </div>
         </div>
 
-        {/* Total */}
-        <div className={cn(
-          "flex items-center justify-between rounded-xl p-4 mb-6",
-          isDark
-            ? "bg-gradient-to-r from-brand-800/80 to-teal-900/60"
-            : "bg-gradient-to-r from-brand-50 to-teal-50"
-        )}>
-          <span className={cn("text-sm font-semibold", isDark ? "text-brand-200" : "text-slate-600")}>
-            {t(locale, "total")}
-          </span>
-          <span className={cn("text-2xl font-bold", isDark ? "text-white" : "text-brand-700")}>
-            {formatPrice(selectedSlot.priceGrosze, selectedSlot.currency)}
-          </span>
+        <div className="mb-6 flex items-center justify-between rounded-2xl border border-[#d9bc7f]/30 bg-[#d9bc7f]/[.07] p-4">
+          <span className="text-[10px] font-extrabold uppercase tracking-[.13em] t-mid">{t(locale, "total")}</span>
+          <span className="luxury-title text-3xl t-gold">{formatPrice(selectedSlot.priceGrosze, selectedSlot.currency)}</span>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3">
           <button
-            onClick={() => {
-              setShowConfirmation(false);
-              setStep(2);
-            }}
+            onClick={() => { setShowConfirmation(false); setStep(2); }}
             disabled={submitting}
-            className={cn(
-              "flex-1 rounded-xl py-3 text-sm font-semibold transition-all",
-              isDark
-                ? "bg-brand-800/50 text-brand-200 hover:bg-brand-800"
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            )}
+            className="btn-ghost flex-1 rounded-full py-3 text-[10px] font-extrabold uppercase tracking-wider"
           >
             {t(locale, "edit")}
           </button>
           <button
             onClick={handleConfirm}
             disabled={submitting}
-            className={cn(
-              "flex flex-[2] items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition-all",
-              submitting
-                ? "opacity-70 cursor-wait"
-                : "hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]",
-              isDark
-                ? "bg-gradient-to-r from-brand-500 to-teal-500 text-white shadow-lg shadow-brand-900/50"
-                : "bg-gradient-to-r from-brand-600 to-teal-500 text-white shadow-md shadow-brand-200"
-            )}
+            className={cn("btn-gold flex flex-[2] items-center justify-center gap-2 rounded-full py-3 text-[10px] uppercase tracking-wider", submitting && "cursor-wait opacity-70")}
           >
             {submitting ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#08080a] border-t-transparent" />
             ) : (
               <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
+                <Check size={15} strokeWidth={3} />
                 {t(locale, "confirm")}
               </>
             )}
@@ -240,27 +139,13 @@ export function ConfirmationModal() {
   );
 }
 
-function SummaryRow({
-  icon,
-  label,
-  value,
-  isDark,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-  isDark: boolean;
-}) {
+function SummaryRow({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-2.5">
       <span className="text-sm">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <p className={cn("text-xs", isDark ? "text-brand-400" : "text-slate-400")}>
-          {label}
-        </p>
-        <p className={cn("text-sm font-medium truncate", isDark ? "text-white" : "text-slate-800")}>
-          {value}
-        </p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] uppercase tracking-wider t-dim">{label}</p>
+        <p className="truncate text-sm font-medium t-hi">{value}</p>
       </div>
     </div>
   );

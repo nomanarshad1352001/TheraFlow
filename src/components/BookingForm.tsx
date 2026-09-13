@@ -1,17 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
-import { useBookingStore, ClinicData } from "@/lib/store";
+import { ArrowLeft, ArrowRight, LockKeyhole } from "lucide-react";
+import { useBookingStore, type ClinicData } from "@/lib/store";
 import { t } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { BookingPhotoPanel } from "./BookingPhotoPanel";
+import { ConfirmationModal } from "./ConfirmationModal";
 import { Header } from "./Header";
-import { VisitModeToggle } from "./VisitModeToggle";
+import { PatientForm } from "./PatientForm";
+import { ResultScreen } from "./ResultScreen";
 import { ServiceSelector } from "./ServiceSelector";
 import { SpecialistSelector } from "./SpecialistSelector";
 import { TimeSlotPicker } from "./TimeSlotPicker";
-import { PatientForm } from "./PatientForm";
-import { ConfirmationModal } from "./ConfirmationModal";
-import { ResultScreen } from "./ResultScreen";
+import { VisitModeToggle } from "./VisitModeToggle";
 
 export function BookingForm({ clinic }: { clinic: ClinicData }) {
   const {
@@ -22,202 +24,131 @@ export function BookingForm({ clinic }: { clinic: ClinicData }) {
     selectedSlot,
     formData,
     locale,
-    theme,
     resultScreen,
     showConfirmation,
     setShowConfirmation,
   } = useBookingStore();
-  const isDark = theme === "dark";
 
-  useEffect(() => {
-    setClinic(clinic);
-  }, [clinic, setClinic]);
+  useEffect(() => setClinic(clinic), [clinic, setClinic]);
 
-  const canProceedStep1 = selectedService && selectedSlot;
-  const canProceedStep2 =
+  const canProceedStep1 = Boolean(selectedService && selectedSlot);
+  const canProceedStep2 = Boolean(
     formData.patientFirstName.trim() &&
-    formData.patientLastName.trim() &&
-    formData.patientEmail.trim() &&
-    formData.patientPhone.trim() &&
-    (formData.bookingFor === "myself" ||
-      (formData.payerFirstName.trim() &&
-        formData.payerLastName.trim() &&
-        formData.payerEmail.trim() &&
-        formData.payerPhone.trim()));
+      formData.patientLastName.trim() &&
+      formData.patientEmail.trim() &&
+      formData.patientPhone.trim() &&
+      (formData.bookingFor === "myself" ||
+        (formData.payerFirstName.trim() && formData.payerLastName.trim() && formData.payerEmail.trim() && formData.payerPhone.trim())),
+  );
 
-  if (resultScreen) {
-    return (
-      <div className={cn(
-        "min-h-screen transition-colors duration-500",
-        isDark ? "bg-brand-950" : "bg-slate-50"
-      )}>
-        <Header />
-        <ResultScreen />
-      </div>
+  const primary = (enabled = true) =>
+    cn(
+      "group flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[10px] font-extrabold uppercase tracking-[.12em]",
+      enabled ? "btn-gold" : "cursor-not-allowed border border-white/8 bg-white/[.04] text-white/25",
     );
-  }
 
   return (
-    <div className={cn(
-      "min-h-screen transition-colors duration-500",
-      isDark ? "bg-brand-950" : "bg-slate-50"
-    )}>
-      <Header />
+    <div className="min-h-screen bg-[#08080a] lg:grid lg:grid-cols-[42%_58%]">
+      <BookingPhotoPanel />
 
-      <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
-        {/* Step 1: Visit Selection */}
-        {step === 1 && (
-          <div className="space-y-5 animate-slide-up">
-            <VisitModeToggle />
-            <ServiceSelector />
-            <SpecialistSelector />
-            <TimeSlotPicker />
+      <div className="min-w-0">
+        <Header />
 
-            {/* Next button */}
-            <div className="pt-2">
-              <button
-                onClick={() => setStep(2)}
-                disabled={!canProceedStep1}
-                className={cn(
-                  "group flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all duration-300",
-                  canProceedStep1
-                    ? isDark
-                      ? "bg-gradient-to-r from-brand-500 to-teal-500 text-white shadow-lg shadow-brand-900/50 hover:shadow-xl hover:scale-[1.01] active:scale-[0.99]"
-                      : "bg-gradient-to-r from-brand-600 to-teal-500 text-white shadow-md shadow-brand-200 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99]"
-                    : isDark
-                      ? "bg-brand-800/50 text-brand-500 cursor-not-allowed"
-                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                )}
-              >
-                {t(locale, "nextStep")}
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="transition-transform group-hover:translate-x-1"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-          </div>
+        {resultScreen ? (
+          <ResultScreen />
+        ) : (
+          <main className="mx-auto max-w-3xl px-4 py-8 sm:px-7 sm:py-10 xl:py-12">
+            {step === 1 && (
+              <div className="space-y-6 animate-luxury-reveal">
+                <div>
+                  <span className="luxury-kicker">{locale === "pl" ? "Krok pierwszy" : "Step one"}</span>
+                  <h1 className="luxury-title mt-3 text-4xl sm:text-5xl">
+                    {locale === "pl" ? "Znajdź swój termin." : "Find your appointment."}
+                  </h1>
+                  <p className="mt-3 text-xs leading-6 t-low">
+                    {locale === "pl"
+                      ? "Wybierz formę spotkania, usługę i dogodny termin. Cena jest zawsze widoczna przed potwierdzeniem."
+                      : "Choose how you would like to meet, your service, and a convenient time. Pricing is always visible before confirmation."}
+                  </p>
+                </div>
+
+                <VisitModeToggle />
+                <ServiceSelector />
+                <SpecialistSelector />
+                <TimeSlotPicker />
+
+                <div className="flex items-center justify-between gap-4 border-t border-white/10 pt-6">
+                  <span className="hidden items-center gap-2 text-[10px] t-dim sm:flex">
+                    <LockKeyhole size={13} /> {locale === "pl" ? "Twoje dane są chronione" : "Your information is protected"}
+                  </span>
+                  <button onClick={() => setStep(2)} disabled={!canProceedStep1} className={cn(primary(canProceedStep1), "w-full sm:w-auto")}>
+                    {t(locale, "nextStep")} <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-7 animate-luxury-reveal">
+                <div>
+                  <span className="luxury-kicker">{locale === "pl" ? "Krok drugi" : "Step two"}</span>
+                  <h1 className="luxury-title mt-3 text-4xl sm:text-5xl">
+                    {locale === "pl" ? "Opowiedz nam, dla kogo." : "Tell us who it's for."}
+                  </h1>
+                  <p className="mt-3 text-xs leading-6 t-low">
+                    {locale === "pl"
+                      ? "Te informacje pozwolą klinice przygotować wizytę i wysłać właściwe potwierdzenie."
+                      : "These details help the clinic prepare your visit and send the right confirmation."}
+                  </p>
+                </div>
+
+                <PatientForm />
+
+                <div className="flex gap-3 border-t border-white/10 pt-6">
+                  <button onClick={() => setStep(1)} className="btn-ghost group flex items-center justify-center gap-2 rounded-full px-5 py-3.5 text-[10px] font-extrabold uppercase tracking-[.1em]">
+                    <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-1" />
+                    {t(locale, "prevStep")}
+                  </button>
+                  <button
+                    onClick={() => { setStep(3); setShowConfirmation(true); }}
+                    disabled={!canProceedStep2}
+                    className={cn(primary(canProceedStep2), "flex-1")}
+                  >
+                    {t(locale, "nextStep")} <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 3 && !showConfirmation && (
+              <div className="grid min-h-[55vh] place-items-center animate-luxury-reveal">
+                <div className="max-w-md text-center">
+                  <span className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-[#d9bc7f]/40 t-gold">
+                    <LockKeyhole size={21} />
+                  </span>
+                  <h1 className="luxury-title mt-7 text-5xl">{locale === "pl" ? "Ostatnie spojrzenie." : "One final look."}</h1>
+                  <p className="mt-4 text-sm leading-6 t-mid">
+                    {locale === "pl" ? "Sprawdź szczegóły wizyty, zanim ją zarezerwujemy." : "Review the visit details before we reserve it for you."}
+                  </p>
+                  <button onClick={() => setShowConfirmation(true)} className={cn(primary(), "mx-auto mt-8")}>
+                    {t(locale, "confirmBooking")} <ArrowRight size={14} />
+                  </button>
+                  <button onClick={() => setStep(2)} className="mt-5 text-[10px] font-bold uppercase tracking-wider t-dim hover:text-[#f7f5f0]">
+                    ← {t(locale, "prevStep")}
+                  </button>
+                </div>
+              </div>
+            )}
+          </main>
         )}
 
-        {/* Step 2: Patient Data */}
-        {step === 2 && (
-          <div className="space-y-5 animate-slide-up">
-            <PatientForm />
+        <footer className="border-t border-white/10 px-7 py-5 text-center text-[9px] font-bold uppercase tracking-[.14em] t-dim">
+          Powered by <a href="/" className="t-gold">TheraFlow</a> · Photos via Unsplash ·{" "}
+          <a href="/crm/login" className="hover:text-[#d9bc7f]">Clinic CRM</a>
+        </footer>
+      </div>
 
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setStep(1)}
-                className={cn(
-                  "group flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-semibold transition-all",
-                  isDark
-                    ? "bg-brand-800/50 text-brand-200 hover:bg-brand-800"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                )}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="transition-transform group-hover:-translate-x-1"
-                >
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-                {t(locale, "prevStep")}
-              </button>
-              <button
-                onClick={() => {
-                  setStep(3);
-                  setShowConfirmation(true);
-                }}
-                disabled={!canProceedStep2}
-                className={cn(
-                  "group flex flex-[2] items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition-all duration-300",
-                  canProceedStep2
-                    ? isDark
-                      ? "bg-gradient-to-r from-brand-500 to-teal-500 text-white shadow-lg shadow-brand-900/50 hover:shadow-xl hover:scale-[1.01]"
-                      : "bg-gradient-to-r from-brand-600 to-teal-500 text-white shadow-md shadow-brand-200 hover:shadow-lg hover:scale-[1.01]"
-                    : isDark
-                      ? "bg-brand-800/50 text-brand-500 cursor-not-allowed"
-                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                )}
-              >
-                {t(locale, "nextStep")}
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  className="transition-transform group-hover:translate-x-1"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 3 shows the confirmation modal */}
-        {step === 3 && !showConfirmation && !resultScreen && (
-          <div className="space-y-5 animate-slide-up">
-            <div className={cn(
-              "rounded-xl border-2 p-6 text-center",
-              isDark ? "border-brand-700 bg-brand-900/40" : "border-slate-200 bg-white"
-            )}>
-              <p className={cn("text-sm", isDark ? "text-brand-300" : "text-slate-500")}>
-                {locale === "pl" ? "Kliknij przycisk aby potwierdzić rezerwację" : "Click the button to confirm your booking"}
-              </p>
-              <button
-                onClick={() => setShowConfirmation(true)}
-                className={cn(
-                  "mt-4 rounded-xl px-8 py-3 text-sm font-bold transition-all hover:scale-[1.02]",
-                  isDark
-                    ? "bg-gradient-to-r from-brand-500 to-teal-500 text-white shadow-lg"
-                    : "bg-gradient-to-r from-brand-600 to-teal-500 text-white shadow-md"
-                )}
-              >
-                {t(locale, "confirmBooking")}
-              </button>
-              <button
-                onClick={() => setStep(2)}
-                className={cn(
-                  "mt-3 block w-full text-sm font-medium transition-colors",
-                  isDark ? "text-brand-400 hover:text-brand-300" : "text-slate-500 hover:text-slate-700"
-                )}
-              >
-                ← {t(locale, "prevStep")}
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
-
-      {/* Confirmation Modal */}
       <ConfirmationModal />
-
-      {/* Footer */}
-      <footer className={cn(
-        "mt-8 border-t py-4 text-center text-xs",
-        isDark ? "border-brand-800 text-brand-600" : "border-slate-200 text-slate-400"
-      )}>
-        <a href="/admin" className={cn(
-          "hover:underline transition-colors",
-          isDark ? "hover:text-brand-400" : "hover:text-slate-600"
-        )}>
-          {t(locale, "admin")} →
-        </a>
-      </footer>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { addDays, endOfWeek, format, isSameDay, startOfWeek } from "date-fns";
 import { enGB, pl } from "date-fns/locale";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock3 } from "lucide-react";
 import { getDemoSlots } from "@/lib/demo-data";
 import { getReservedSlotIds } from "@/lib/demo-storage";
 import { useBookingStore } from "@/lib/store";
@@ -10,25 +11,13 @@ import { t } from "@/lib/i18n";
 import { cn, formatPrice, formatTime } from "@/lib/utils";
 
 export function TimeSlotPicker() {
-  const {
-    visitMode,
-    selectedService,
-    selectedSpecialist,
-    selectedSlot,
-    setSelectedSlot,
-    locale,
-    theme,
-  } = useBookingStore();
-  const isDark = theme === "dark";
+  const { visitMode, selectedService, selectedSpecialist, selectedSlot, setSelectedSlot, locale } = useBookingStore();
   const [weekOffset, setWeekOffset] = useState(0);
   const [reservedIds, setReservedIds] = useState<string[]>([]);
 
   useEffect(() => setReservedIds(getReservedSlotIds()), []);
 
-  const weekStart = useMemo(
-    () => addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7),
-    [weekOffset],
-  );
+  const weekStart = useMemo(() => addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), weekOffset * 7), [weekOffset]);
   const weekEnd = useMemo(() => endOfWeek(weekStart, { weekStartsOn: 1 }), [weekStart]);
   const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
 
@@ -56,38 +45,36 @@ export function TimeSlotPicker() {
   return (
     <div className="space-y-3 animate-slide-up">
       <div className="flex items-center justify-between">
-        <label className={cn("text-sm font-semibold", isDark ? "text-brand-200" : "text-slate-700")}>
-          {t(locale, "selectTimeSlot")}
-        </label>
+        <label className="text-sm font-semibold t-hi">{t(locale, "selectTimeSlot")}</label>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setWeekOffset((value) => Math.max(0, value - 1))}
             disabled={weekOffset === 0}
-            className={cn("rounded-lg p-1.5", weekOffset === 0 ? "cursor-not-allowed opacity-30" : isDark ? "text-brand-300 hover:bg-brand-800" : "text-slate-500 hover:bg-slate-100")}
+            className={cn("grid h-8 w-8 place-items-center rounded-lg", weekOffset === 0 ? "cursor-not-allowed t-dim opacity-40" : "t-mid hover:bg-white/5 hover:text-[#d9bc7f]")}
             aria-label={t(locale, "prevWeek")}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6" /></svg>
+            <ChevronLeft size={15} />
           </button>
-          <span className={cn("px-2 text-xs font-medium", isDark ? "text-brand-300" : "text-slate-500")}>
+          <span className="px-2 text-xs font-medium t-low">
             {format(weekStart, "d MMM", { locale: dateLocale })} – {format(weekEnd, "d MMM", { locale: dateLocale })}
           </span>
           <button
             onClick={() => setWeekOffset((value) => value + 1)}
-            className={cn("rounded-lg p-1.5", isDark ? "text-brand-300 hover:bg-brand-800" : "text-slate-500 hover:bg-slate-100")}
+            className="grid h-8 w-8 place-items-center rounded-lg t-mid hover:bg-white/5 hover:text-[#d9bc7f]"
             aria-label={t(locale, "nextWeek")}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6" /></svg>
+            <ChevronRight size={15} />
           </button>
         </div>
       </div>
 
       {!hasAnySlots ? (
-        <div className={cn("rounded-xl border-2 border-dashed py-8 text-center", isDark ? "border-brand-800 bg-brand-950/30" : "border-slate-200 bg-white")}>
-          <div className={cn("mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full", isDark ? "bg-brand-800/50 text-brand-400" : "bg-slate-100 text-slate-400")}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+        <div className="rounded-2xl border border-dashed border-white/15 bg-[#121215] py-10 text-center">
+          <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full border border-white/12 t-gold">
+            <CalendarDays size={22} />
           </div>
-          <p className={cn("text-sm font-medium", isDark ? "text-brand-300" : "text-slate-500")}>{t(locale, "noSlotsAvailable")}</p>
-          <button onClick={() => setWeekOffset((value) => value + 1)} className={cn("mt-2 text-sm font-semibold", isDark ? "text-brand-400" : "text-brand-600")}>
+          <p className="text-sm font-medium t-mid">{t(locale, "noSlotsAvailable")}</p>
+          <button onClick={() => setWeekOffset((value) => value + 1)} className="mt-2 text-sm font-semibold t-gold">
             {t(locale, "tryNextWeek")} →
           </button>
         </div>
@@ -97,13 +84,15 @@ export function TimeSlotPicker() {
             const isToday = isSameDay(date, new Date());
             return (
               <div key={date.toISOString()} className="min-w-0">
-                <div className={cn("mb-1.5 rounded-lg py-1 text-center text-[10px] font-semibold uppercase", isToday ? isDark ? "bg-brand-600/30 text-brand-300" : "bg-brand-100 text-brand-700" : isDark ? "text-brand-400" : "text-slate-500")}>
-                  <div>{format(date, "EEE", { locale: dateLocale })}</div>
-                  <div className={cn("text-sm", isDark ? "text-white" : "text-slate-800")}>{format(date, "d")}</div>
+                <div className={cn("mb-1.5 rounded-lg py-1 text-center", isToday && "bg-[#d9bc7f]/12")}>
+                  <div className={cn("text-[10px] font-semibold uppercase", isToday ? "t-gold" : "t-dim")}>
+                    {format(date, "EEE", { locale: dateLocale })}
+                  </div>
+                  <div className={cn("text-sm font-bold", isToday ? "t-gold" : "t-hi")}>{format(date, "d")}</div>
                 </div>
                 <div className="max-h-48 space-y-1 overflow-y-auto">
                   {daySlots.length === 0 ? (
-                    <div className={cn("py-2 text-center text-[10px]", isDark ? "text-brand-800" : "text-slate-300")}>—</div>
+                    <div className="py-2 text-center text-[10px] t-dim">—</div>
                   ) : (
                     daySlots.slice(0, 8).map((slot) => {
                       const isSelected = selectedSlot?.id === slot.id;
@@ -113,12 +102,10 @@ export function TimeSlotPicker() {
                           onClick={() => setSelectedSlot(isSelected ? null : slot)}
                           title={`${slot.specialistFirstName} ${slot.specialistLastName}`}
                           className={cn(
-                            "w-full rounded-lg px-1 py-1.5 text-[11px] font-medium transition-all sm:text-xs",
+                            "w-full rounded-lg px-1 py-1.5 text-[11px] font-medium sm:text-xs",
                             isSelected
-                              ? "scale-105 bg-brand-500 text-white shadow-md"
-                              : isDark
-                                ? "bg-brand-900/50 text-brand-200 hover:bg-brand-700"
-                                : "border border-slate-200 bg-white text-slate-700 hover:border-brand-300 hover:bg-brand-50",
+                              ? "scale-[1.03] bg-[#d9bc7f] text-[#08080a]"
+                              : "border border-white/10 bg-[#121215] t-mid hover:border-[#d9bc7f]/45 hover:text-[#f7f5f0]",
                           )}
                         >
                           {formatTime(slot.startTime)}
@@ -134,18 +121,22 @@ export function TimeSlotPicker() {
       )}
 
       {selectedSlot && (
-        <div className={cn("animate-slide-up rounded-xl border-2 p-3", isDark ? "border-brand-600/50 bg-brand-900/60" : "border-brand-200 bg-gradient-to-r from-brand-50 to-teal-50")}>
+        <div className="animate-slide-up rounded-2xl border border-[#d9bc7f]/35 bg-[#d9bc7f]/[.07] p-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-lg", isDark ? "bg-brand-700 text-brand-200" : "bg-brand-100 text-brand-600")}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
-              </div>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#d9bc7f]/40 t-gold">
+                <Clock3 size={17} />
+              </span>
               <div className="min-w-0">
-                <p className={cn("text-sm font-semibold", isDark ? "text-white" : "text-slate-800")}>{formatTime(selectedSlot.startTime)} – {formatTime(selectedSlot.endTime)}</p>
-                <p className={cn("truncate text-xs", isDark ? "text-brand-300" : "text-slate-500")}>{selectedSlot.specialistTitle} {selectedSlot.specialistFirstName} {selectedSlot.specialistLastName}</p>
+                <p className="text-sm font-semibold t-hi">
+                  {formatTime(selectedSlot.startTime)} – {formatTime(selectedSlot.endTime)}
+                </p>
+                <p className="truncate text-xs t-low">
+                  {selectedSlot.specialistTitle} {selectedSlot.specialistFirstName} {selectedSlot.specialistLastName}
+                </p>
               </div>
             </div>
-            <div className={cn("shrink-0 rounded-lg px-3 py-1 text-sm font-bold", isDark ? "bg-teal-900/50 text-teal-300" : "bg-teal-100 text-teal-700")}>{formatPrice(selectedSlot.priceGrosze, selectedSlot.currency)}</div>
+            <div className="luxury-title shrink-0 text-2xl t-gold">{formatPrice(selectedSlot.priceGrosze, selectedSlot.currency)}</div>
           </div>
         </div>
       )}
